@@ -116,7 +116,7 @@ private extension ViewController {
         case .left where deltaX >= -minMove:
             return deltaY < 0 ? .turn(.right) : .turn(.left)
         case .right where deltaX <= minMove:
-            return deltaY < 0 ? .turn(.left) : .turn(.left)
+            return deltaY < 0 ? .turn(.left) : .turn(.right)
         default:
             return nil
         }
