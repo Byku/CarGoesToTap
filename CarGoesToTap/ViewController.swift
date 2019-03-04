@@ -9,11 +9,12 @@ struct Constants {
 
 class ViewController: UIViewController {
     private var car: Car!
+    private var map: UIView!
     private var gesture: UITapGestureRecognizer!
     
     private var tapPosition: (x: CGFloat, y: CGFloat) = (0, 0) {
         didSet {
-            view.removeGestureRecognizer(gesture)
+            map.removeGestureRecognizer(gesture)
             carMoving()
         }
     }
@@ -21,14 +22,20 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // let's create square "map"
+        let mapWidth = max(view.frame.height, view.frame.width)
+        map = UIView(frame: CGRect(x: 0, y: 0, width: mapWidth, height: mapWidth))
+        view.addSubview(map)
+        
+        // let's create car and put it on our square map
         let carXPosition = (view.frame.width - Constants.carWidth) * 0.5
         let carYPosition = view.frame.height - Constants.carLength
         car = Car(at: Position(x: carXPosition, y: carYPosition), orientation: .top)
         car.backgroundColor = .yellow
-        view.addSubview(car)
+        map.addSubview(car)
         
         gesture = UITapGestureRecognizer(target: self, action:  #selector (self.viewTapped (_:)))
-        view.addGestureRecognizer(gesture)
+        map.addGestureRecognizer(gesture)
     }
 }
 
@@ -39,7 +46,7 @@ private extension ViewController {
             if car.point(inside: point, with: nil) {
                 car.backgroundColor = Constants.colors[Int.random(in: 0..<7)]
             } else {
-                tapPosition = (sender.location(in: view).x, sender.location(in: view).y)
+                tapPosition = (sender.location(in: map).x, sender.location(in: map).y)
             }
         }
     }
@@ -62,6 +69,22 @@ private extension ViewController {
     }
     
     func moveFinished() {
-        view.addGestureRecognizer(gesture)
+        map.addGestureRecognizer(gesture)
+    }
+}
+
+extension ViewController {
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        map.bounds.origin = CGPoint(x: 0, y: 0)
+        
+        // move map if the car is out of screen
+        if car.position.x > size.width {
+            map.bounds.origin.x += car.position.x - size.width + Constants.carLength
+        }
+        if car.position.y > size.height {
+            map.bounds.origin.y += car.position.y - size.height + Constants.carLength
+        }
     }
 }
