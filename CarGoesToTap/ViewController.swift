@@ -5,6 +5,7 @@ struct Constants {
     static let carLength: CGFloat = 100
     static let turningRadius: CGFloat = 70
     static let colors: [UIColor] = [.yellow, .red, .blue, .black, .gray, .green, .orange]
+    static let mapShiftingDuration = 0.4
 }
 
 class ViewController: UIViewController {
@@ -36,6 +37,14 @@ class ViewController: UIViewController {
         
         gesture = UITapGestureRecognizer(target: self, action:  #selector (self.viewTapped (_:)))
         map.addGestureRecognizer(gesture)
+        
+        // add bg gradient for naglyadnost
+        let bgGradient = CAGradientLayer()
+        bgGradient.colors = [UIColor.blue.cgColor, UIColor.gray.cgColor, UIColor.green.cgColor]
+        bgGradient.locations = [0.0, 0.5, 1.0]
+        bgGradient.frame = map.frame
+        bgGradient.transform = CATransform3DMakeRotation(.pi / 4, 0, 0, 1)
+        map.layer.insertSublayer(bgGradient, at: 0)
     }
 }
 
@@ -69,6 +78,8 @@ private extension ViewController {
     }
     
     func moveFinished() {
+        mapShift(CGSize(width: view.frame.width + map.bounds.origin.x,
+                        height: view.frame.height + map.bounds.origin.y))
         map.addGestureRecognizer(gesture)
     }
 }
@@ -78,13 +89,30 @@ extension ViewController {
         super.viewWillTransition(to: size, with: coordinator)
         
         map.bounds.origin = CGPoint(x: 0, y: 0)
-        
+        mapShift(size)
+    }
+    
+    private func mapShift(_ size: CGSize) {
         // move map if the car is out of screen
         if car.position.x > size.width {
-            map.bounds.origin.x += car.position.x - size.width + Constants.carLength
+            UIView.animate(withDuration: Constants.mapShiftingDuration) { [unowned self] in
+                self.map.bounds.origin.x += self.car.position.x - size.width + Constants.carLength
+            }
         }
         if car.position.y > size.height {
-            map.bounds.origin.y += car.position.y - size.height + Constants.carLength
+            UIView.animate(withDuration: Constants.mapShiftingDuration) { [unowned self] in
+                self.map.bounds.origin.y += self.car.position.y - size.height + Constants.carLength
+            }
+        }
+        if car.position.x < map.bounds.minX {
+            UIView.animate(withDuration: Constants.mapShiftingDuration) { [unowned self] in
+                self.map.bounds.origin.x = max(0, self.car.position.x - Constants.carLength)
+            }
+        }
+        if car.position.y < map.bounds.minY {
+            UIView.animate(withDuration: Constants.mapShiftingDuration) { [unowned self] in
+                self.map.bounds.origin.y = max(0, self.car.position.y - Constants.carLength)
+            }
         }
     }
 }
