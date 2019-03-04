@@ -23,21 +23,23 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // let's create square "map"
-        let mapWidth = max(view.frame.height, view.frame.width)
-        map = UIView(frame: CGRect(x: 0, y: 0, width: mapWidth, height: mapWidth))
-        view.addSubview(map)
+        createMap()
+        createCar()
         
-        // let's create car and put it on our square map
-        let carXPosition = (view.frame.width - Constants.carWidth) * 0.5
-        let carYPosition = view.frame.height - Constants.carLength
-        car = Car(at: Position(x: carXPosition, y: carYPosition), orientation: .top)
-        car.backgroundColor = .yellow
+        view.addSubview(map)
         map.addSubview(car)
         
         gesture = UITapGestureRecognizer(target: self, action:  #selector (self.viewTapped (_:)))
         map.addGestureRecognizer(gesture)
-        
+    }
+}
+
+private extension ViewController {
+    func createMap() {
+        // let's create square "map"
+        let mapWidth = max(view.frame.height, view.frame.width)
+        map = UIView(frame: CGRect(x: 0, y: 0, width: mapWidth, height: mapWidth))
+
         // add bg gradient for naglyadnost
         let bgGradient = CAGradientLayer()
         bgGradient.colors = [UIColor.blue.cgColor, UIColor.gray.cgColor, UIColor.green.cgColor]
@@ -46,9 +48,15 @@ class ViewController: UIViewController {
         bgGradient.transform = CATransform3DMakeRotation(.pi / 4, 0, 0, 1)
         map.layer.insertSublayer(bgGradient, at: 0)
     }
-}
-
-private extension ViewController {
+    
+    func createCar() {
+        // let's create car and put it on our square map
+        let carXPosition = (view.frame.width - Constants.carWidth) * 0.5
+        let carYPosition = view.frame.height - Constants.carLength
+        car = Car(at: Position(x: carXPosition, y: carYPosition), orientation: .top)
+        car.backgroundColor = .yellow
+    }
+    
     @objc func viewTapped(_ sender: UITapGestureRecognizer) {
         if sender.state == .ended {
             let point = sender.location(in: car)
